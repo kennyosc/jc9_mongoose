@@ -21,18 +21,6 @@ app.get('/', (req,res)=>{
     res.send('<h1>Website connected</h1>')
 })
 
-app.get('/users', (req,res)=>{
-    const {name,email,password,age} = req.query
-
-    const nameData = name
-    const emailData = email
-    const passwordData = password
-    const ageData = age
-
-
-
-})
-
 app.post('/users/input', (req,res)=>{
     const {name,email,password,age} = req.body
 
@@ -48,8 +36,10 @@ app.post('/users/input', (req,res)=>{
         age: ageData
     })
 
-    person.save().then(()=>{
-        console.log('User inserted')
+    person.save().then((results)=>{
+        res.send(results)
+    }).catch(err=>{ // catch dibutuhkan untuk display error di postman
+        res.send(err)
     })
 })
 
