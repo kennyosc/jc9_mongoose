@@ -85,6 +85,21 @@ app.patch('/users/:id', (req,res)=>{
     })
 })
 
+//DELETE USER findbyidanddelete
+app.delete('/users/:id', (req,res)=>{
+    const id_data = req.params.id
+
+    User.findByIdAndDelete(id_data).then(user=>{
+        res.send({
+            message:`${user.name} has been deleted `,
+            user: user
+        })
+    }).catch(err=>{
+        console.log(err)
+        res.send(err)
+    })
+})
+
 //====PORT LISTEN====
 app.listen(port, ()=>{
     console.log('Connected to port ' + port)
