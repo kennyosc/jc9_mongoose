@@ -21,6 +21,18 @@ app.get('/', (req,res)=>{
     res.send('<h1>Website connected</h1>')
 })
 
+//ALL USERS
+app.get('/users',(req,res)=>{
+    User.find({}, (err,allUser)=>{
+        if(err){
+            console.log(err)
+        } else{
+            res.send(allUser)
+        }
+    })
+})
+
+//POST USER
 app.post('/users/input', (req,res)=>{
     const {name,email,password,age} = req.body
 
@@ -39,6 +51,7 @@ app.post('/users/input', (req,res)=>{
     person.save().then((results)=>{
         res.send(results)
     }).catch(err=>{ // catch dibutuhkan untuk display error di postman
+        //catch memiliki 1 parameter dimana, errornya berasal dari javascript
         res.send(err)
     })
 })
