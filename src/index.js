@@ -1,4 +1,4 @@
-//====API====
+//=====================API======================
 const express = require('express')
 const app = express()
 const mongoose = require('mongoose')
@@ -9,14 +9,46 @@ const URL = 'mongodb://127.0.0.1:27017/jc9_mongoose'
 
 app.use(express.json())
 
-// ====MONGOOSE====
+// ======================MONGOOSE======================
 mongoose.connect(URL, {
     // parser string URL
     useNewUrlParser: true,
     useCreateIndex: true
 })
 
-// ====ROUTES====
+// ======================ROUTES=====================
+//======================CREATE======================
+//POST USER
+app.post('/users/input', (req,res)=>{
+    const {name,email,password,age} = req.body
+
+    const nameData = name
+    const emailData = email
+    const passwordData = password
+    const ageData = age
+
+    const person = new User({
+        name: nameData,
+        email: emailData,
+        password: passwordData,
+        age: ageData
+    })
+
+    person.save().then((results)=>{
+        res.send(results)
+    }).catch(err=>{ // catch dibutuhkan untuk display error di postman
+        //catch memiliki 1 parameter dimana, errornya berasal dari javascript
+        res.send(err)
+    })
+})
+
+// POST ONE TASK
+
+
+
+
+//======================READ======================
+//HOME
 app.get('/', (req,res)=>{
     res.send('<h1>Website connected</h1>')
 })
@@ -46,31 +78,8 @@ app.get('/users/:id', (req,res)=>{
     })
 })
 
-//POST USER
-app.post('/users/input', (req,res)=>{
-    const {name,email,password,age} = req.body
-
-    const nameData = name
-    const emailData = email
-    const passwordData = password
-    const ageData = age
-
-    const person = new User({
-        name: nameData,
-        email: emailData,
-        password: passwordData,
-        age: ageData
-    })
-
-    person.save().then((results)=>{
-        res.send(results)
-    }).catch(err=>{ // catch dibutuhkan untuk display error di postman
-        //catch memiliki 1 parameter dimana, errornya berasal dari javascript
-        res.send(err)
-    })
-})
-
-// FINDBYIDANDUPDATE
+//======================UPDATE======================
+// FINDBYIDANDUPDATE USER
 app.patch('/users/:id', (req,res)=>{
     const id_data = req.params.id
     const newName = req.body.name
@@ -85,20 +94,35 @@ app.patch('/users/:id', (req,res)=>{
     })
 })
 
+//patch task so that completed:true
+
+
+
+//======================DELETE======================
+
 //DELETE USER findbyidanddelete
 app.delete('/users/:id', (req,res)=>{
     const id_data = req.params.id
 
     User.findByIdAndDelete(id_data).then(user=>{
-        res.send({
-            message:`${user.name} has been deleted `,
-            user: user
-        })
+        if(user){
+            res.send({
+                message:`${user.name} has been deleted `,
+                user: user
+            })
+        }else{
+            res.send({
+                message: `User with id ${id_data} cannot be found`,
+                user: []
+            })
+        }
     }).catch(err=>{
         console.log(err)
         res.send(err)
     })
 })
+
+// DELETE ONE TASK
 
 //====PORT LISTEN====
 app.listen(port, ()=>{
