@@ -23,11 +23,25 @@ app.get('/', (req,res)=>{
 
 //ALL USERS
 app.get('/users',(req,res)=>{
-    User.find({}, (err,allUser)=>{
+    User.find().then((err,results)=>{
+        if(err){
+            console.log(err)
+        }else{
+            //results adalah array of object
+            res.send(results)
+        }
+    })
+})
+
+//FIND ONE USER
+app.get('/users/:id', (req,res)=>{
+    const data_id = req.params.id
+
+    User.findById(data_id).then((err,userData)=>{
         if(err){
             console.log(err)
         } else{
-            res.send(allUser)
+            res.send(userData)
         }
     })
 })
@@ -53,6 +67,21 @@ app.post('/users/input', (req,res)=>{
     }).catch(err=>{ // catch dibutuhkan untuk display error di postman
         //catch memiliki 1 parameter dimana, errornya berasal dari javascript
         res.send(err)
+    })
+})
+
+// FINDBYIDANDUPDATE
+app.patch('/users/:id', (req,res)=>{
+    const id_data = req.params.id
+    const newName = req.body.name
+
+    User.findById(id_data).then(results=>{
+        //results = {_id,name,email,password,age} -> object yang dari find
+        results.name = newName
+        
+        //.save() adalah method dari mongoose untuk menyimpan data yang kita ubah ke mongodb
+        results.save()
+        res.send('Update telah berhasil')
     })
 })
 
