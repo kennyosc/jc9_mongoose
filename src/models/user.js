@@ -55,7 +55,12 @@ const userSchema = new mongoose.Schema({
                 throw new Error('Please insert age more than 0')
             }
         }
-    }
+    },
+    tasks:[
+        {//ini akan menyimpan objectID dari models task
+            type: mongoose.Schema.Types.objectID
+        }
+    ]
 })
 
 const User = mongoose.model('User', userSchema)

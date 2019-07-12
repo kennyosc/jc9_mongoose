@@ -118,7 +118,17 @@ app.patch('/users/:id', (req,res)=>{
 })
 
 //patch task so that completed:true
+// patch dan get membutuhkan /:id karena express harus tau :id mana yang akan di get atau update
+app.patch('/users/:id', (req,res)=>{
+    const id_data = req.params.id
 
+    Task.findByIdAndUpdate(id_data).then(task=>{
+        task.completed = !task.completed
+        res.send('Task completed')
+    }).catch(err){
+        res.send(err)
+    }
+})
 
 
 //======================DELETE======================
