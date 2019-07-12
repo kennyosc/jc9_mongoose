@@ -93,15 +93,28 @@ const upload = multer({
 
 //CREATE AVATAR
 //npm i --save sharp (untuk resize gambar yang diupload)
+// terdapat :id di tengahnya karena mau memberikan avatarnya khusus pada :id tersebut
+// ketika pakai postman untuk upload avatar, itu menggunakan form-data
+// ketika post di postman, nama key harus sama dengan upload.single('avatar')
 app.post('/users/:id/avatar', upload.single('avatar'),(req,res)=>{ //multer == middleware
     const id_data = req.params.id
 
     //sharp = sebuah function
     // sharp menerima sebuah file dimana akan di resize() lalu ubah jadi .png lalu karena di model itu buffer,maka toBuffer()
     sharp(req.file.buffer).resize({width:250}).png().toBuffer().then(buffer=>{
+        //cari user berdasrkan id
         User.findById(id_data).then(user=>{
+            //masukkan buffer ke dalam user.avatar
             user.avatar = buffer
+
+            user.save().then(()=>{
+                res.send('Avatar uploaded')
+            }).catch(err=>{
+                res.send('Upload failed')
+            })
         })
+    }).catch(err=>{
+        res.send('Upload image to server failed')
     })
 })
 
