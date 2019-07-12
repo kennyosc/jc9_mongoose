@@ -3,6 +3,7 @@ const express = require('express')
 const app = express()
 const mongoose = require('mongoose')
 const User = require('./models/user.js')
+const Task = require('./models/task.js')
 
 const port = 2019
 const URL = 'mongodb://127.0.0.1:27017/jc9_mongoose'
@@ -19,7 +20,7 @@ mongoose.connect(URL, {
 // ======================ROUTES=====================
 //======================CREATE======================
 //POST USER
-app.post('/users/input', (req,res)=>{
+app.post('/users/input', async(req,res)=>{ //async ditaruh disitu karena function (req,res) itu adalah yang async
     const {name,email,password,age} = req.body
 
     const nameData = name
@@ -34,16 +35,38 @@ app.post('/users/input', (req,res)=>{
         age: ageData
     })
 
-    person.save().then((results)=>{
+    //ES7
+    //ini adalah proses async, dimana res.send(results) menunggu hasil results dari var results
+    try {
+        var results = await person.save()
         res.send(results)
-    }).catch(err=>{ // catch dibutuhkan untuk display error di postman
-        //catch memiliki 1 parameter dimana, errornya berasal dari javascript
-        res.send(err)
-    })
+    } catch (err) {
+        console.log(err)
+    }
+
+    //ES6
+    // //ini adalah proses async
+    // person.save().then((results)=>{
+    //     res.send(results)
+    // }).catch(err=>{ // catch dibutuhkan untuk display error di postman
+    //     //catch memiliki 1 parameter dimana, errornya berasal dari javascript
+    //     res.send(err)
+    // })
 })
 
 // POST ONE TASK
+app.post('/task/input', (req,res)=>{
+    const description_data = req.body.description
 
+    const task = new Task({
+        description: description_data
+    }).then(results =>{
+        res.send({
+            message: 'Task berhasil diinput',
+            description: description_data
+        })
+    })
+})
 
 
 
@@ -128,3 +151,19 @@ app.delete('/users/:id', (req,res)=>{
 app.listen(port, ()=>{
     console.log('Connected to port ' + port)
 })
+
+/*
+ini digunakan bersama dengan ASYNC dan AWAIT
+CONTOH TRY DAN CATCH
+
+var value1 = 5
+
+try{
+    var hasil = value1 + value2
+    console.log(hasil)
+} catch(error){
+    //catch akan dijalankan jika di bagian try, terdapat kode yang error
+    console.log(error)
+    console.log('hai')
+}
+*/

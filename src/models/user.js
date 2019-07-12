@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
             if(!hasil){
                 throw new Error('Please insert a valid email address')
             }
-        }
+        }   
     },
     password: {
         type:String,

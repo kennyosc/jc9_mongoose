@@ -8,7 +8,8 @@ var taskSchema = new mongoose.Schema({
     },
     completed:{
         type:Boolean,
-        required: true
+        required: true,
+        default: false
     }
 })
 
