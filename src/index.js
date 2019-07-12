@@ -2,6 +2,8 @@
 const express = require('express')
 const app = express()
 const mongoose = require('mongoose')
+const multer = require('multer')
+
 const User = require('./models/user.js')
 const Task = require('./models/task.js')
 
@@ -60,14 +62,48 @@ app.post('/task/input', (req,res)=>{
 
     const task = new Task({
         description: description_data
-    }).then(results =>{
+    })
+
+    task.save().then(results =>{
         res.send({
             message: 'Task berhasil diinput',
             description: description_data
         })
+    }).catch(err=>{
+        res.send(err)
     })
 })
 
+//npm i --save multer
+//KONFIGURASII MULTER a.k.a middleware untuk upload gambar
+// multer = middleware for handling multipart/form-data, which is primarily used for uploading files.
+const upload = multer({
+    limits:{
+        fileSize: 1000000 //byte
+    },
+    fileFilter(req,file,cb){
+        if(file.originalname.match(/\.(jpg|png|jpeg)/)){
+            cb(undefined, true)
+        } else{
+            cb(new Error('Please upload a .jpg .png .jpeg photo'))
+        }
+    }
+
+})
+
+//CREATE AVATAR
+//npm i --save sharp (untuk resize gambar yang diupload)
+app.post('/users/:id/avatar', upload.single('avatar'),(req,res)=>{ //multer == middleware
+    const id_data = req.params.id
+
+    //sharp = sebuah function
+    // sharp menerima sebuah file dimana akan di resize() lalu ubah jadi .png lalu karena di model itu buffer,maka toBuffer()
+    sharp(req.file.buffer).resize({width:250}).png().toBuffer().then(buffer=>{
+        User.findById(id_data).then(user=>{
+            user.avatar = buffer
+        })
+    })
+})
 
 
 //======================READ======================
@@ -124,15 +160,16 @@ app.patch('/users/:id', (req,res)=>{
 
     Task.findByIdAndUpdate(id_data).then(task=>{
         task.completed = !task.completed
-        res.send('Task completed')
-    }).catch(err){
-        res.send(err)
-    }
+
+        task.save().then(()=>{
+            res.send('Task completed')
+        })
+    })
 })
 
 
 //======================DELETE======================
-
+// DELETE JUGA MEMBUTUHKAN :id karena delete harus specify id mana yang mau di delete
 //DELETE USER findbyidanddelete
 app.delete('/users/:id', (req,res)=>{
     const id_data = req.params.id
@@ -155,7 +192,18 @@ app.delete('/users/:id', (req,res)=>{
     })
 })
 
-// DELETE ONE TASK
+// DELETE ONE TASK BY ID 
+app.delete('/users/:id', async(req,res)=>{
+    const id_data = req.params.id
+
+    try{
+        var hasil = await Task.findByIdAndDelete(id_data)
+        res.send(`${hasil} has been deteled`)
+    }catch(err){
+        res.send(err)
+    }
+
+})
 
 //====PORT LISTEN====
 app.listen(port, ()=>{

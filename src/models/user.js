@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
         required: true, // wajib diisi
         trim: true // menghapus whitespace di awal dan akhir data
     },
+
     email: {
         type:String,
         required:true,
@@ -23,6 +24,7 @@ const userSchema = new mongoose.Schema({
             }
         }   
     },
+
     password: {
         type:String,
         //harus diisi
@@ -45,6 +47,7 @@ const userSchema = new mongoose.Schema({
             }
         }
     },
+
     age: {
         type:Number,
         default: 0, // default value jika user tidak input data age. kalau user masukkan string kosong (""). hasilnya akan 0
@@ -56,9 +59,19 @@ const userSchema = new mongoose.Schema({
             }
         }
     },
+
+    avatar: {
+        //ini akan menyimpan string image foto berupa .jpeg dll.
+        //In computer science, a data buffer (or just buffer) is a region of a physical memory storage used to temporarily store data while it is being moved from one place to another. ... 
+        //However, a buffer may be used when moving data between processes within a computer.
+        type: Buffer
+    },
+
     tasks:[
         {//ini akan menyimpan objectID dari models task
-            type: mongoose.Schema.Types.objectID
+            type: mongoose.Schema.Types.objectID,
+            //synthax kedua akan mengambil data Task nya dari mana? yaitu dari model "Task"
+            ref:'Task'
         }
     ]
 })
