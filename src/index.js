@@ -168,7 +168,7 @@ app.get('/tasks/:user_id', (req,res)=>{
 
     // Mencari user berdasarkan Id
     User.findById(req.params.userid)
-        .populate({path: 'tasks'}).exec() // Mencari data ke tasks berdasarkan task id untuk kemudian di kirim sebagai respon
+        .populate({path: 'Task'}).exec() // Mencari data ke tasks berdasarkan task id untuk kemudian di kirim sebagai respon
         .then(user => {
             // Jika user tidak ditemukan
             if(!user){

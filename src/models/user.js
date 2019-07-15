@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const validators = require('validator')
+const bcrypt = require('bcrypt')
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -72,9 +73,22 @@ const userSchema = new mongoose.Schema({
         {//ini akan menyimpan objectID dari models task
             type: mongoose.Schema.Types.ObjectId,
             //synthax kedua akan mengambil data Task nya dari mana? yaitu dari model "Task"
+            //ref itu akan merefensikan ketika .populate dijalankan, bukan untuk menyambungkan antar model
             ref:'Task'
         }
     ]
+})
+
+userSchema.pre('save', async function(next){
+    //this akan mengacu pada object user di mana function ini dipanggil, yaitu user
+    const user = this
+    //check first whether the document is modified or not, then run the bcrypt function
+    if(user.isModified){
+        //brcrypt akan menerima 2 parameter, yaitu 'variable yang akan di hash', dan berapa bnyk hash yang diinginkan
+        user.password = await bcrypt.hash(user.password, 8)
+    }
+
+    next()
 })
 
 const User = mongoose.model('User', userSchema)
