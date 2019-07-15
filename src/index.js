@@ -137,6 +137,8 @@ app.get('/', (req,res)=>{
 })
 
 //ALL USERS
+//.find akan memasukkan semuanya ke dalam array. ini adalah function dari mongoose yang sangat membantu
+// kalau tidak memakai mongoose, harus .toArray()
 app.get('/users',(req,res)=>{
     User.find().then((err,results)=>{
         if(err){
@@ -159,6 +161,23 @@ app.get('/users/:id', (req,res)=>{
             res.send(userData)
         }
     })
+})
+
+//READ TASK BY USER_ID
+app.get('/tasks/:user_id', (req,res)=>{
+
+    // Mencari user berdasarkan Id
+    User.findById(req.params.userid)
+        .populate({path: 'tasks'}).exec() // Mencari data ke tasks berdasarkan task id untuk kemudian di kirim sebagai respon
+        .then(user => {
+            // Jika user tidak ditemukan
+            if(!user){
+                res.send('Unable to read tasks')
+            }
+
+            // Kirim respon hanya untuk field (kolom) tasks
+            res.send(user.tasks)
+        })
 })
 
 //======================UPDATE======================
@@ -188,7 +207,7 @@ app.patch('/users/:id', (req,res)=>{
 app.patch('/users/:id', (req,res)=>{
     const id_data = req.params.id
 
-    Task.findByIdAndUpdate(id_data).then(task=>{
+    Task.findById(id_data).then(task=>{
         task.completed = !task.completed
 
         task.save().then(()=>{
@@ -197,6 +216,26 @@ app.patch('/users/:id', (req,res)=>{
     })
 })
 
+app.patch('/tasks/:userid/:taskid', (req,res)=>{
+    const data_userid = req.params.userid
+    const data_taskid = req.params.taskid
+
+    //find by user_id
+    User.findById(data_userid).then((user)=>{
+        if(!user){
+            return res.send('User not found')
+        }
+
+        //find the task you want to update
+        Task.findOne({_id:data_taskid}).then((task)=>{
+            task.completed = true
+
+            task.save().then(()=>{
+                res.send('Task Completed')
+            })
+        })
+    })
+})
 
 //======================DELETE======================
 // DELETE JUGA MEMBUTUHKAN :id karena delete harus specify id mana yang mau di delete
@@ -207,12 +246,12 @@ app.delete('/users/:id', (req,res)=>{
     User.findByIdAndDelete(id_data).then(user=>{
         if(user){
             res.send({
-                message:`${user.name} has been deleted `,
+                message: user.name + ' has been deleted',
                 user: user
             })
         }else{
             res.send({
-                message: `User with id ${id_data} cannot be found`,
+                message:'User with id '+ id_data+ ' cannot be found',
                 user: []
             })
         }
@@ -228,12 +267,23 @@ app.delete('/users/:id', async(req,res)=>{
 
     try{
         var hasil = await Task.findByIdAndDelete(id_data)
-        res.send(`${hasil} has been deteled`)
+        res.send(hasil+ ' has been deleted')
     }catch(err){
         res.send(err)
     }
 
 })
+
+
+//DELETE TASK BY ID
+app.delete('/tasks', (req,res)=>{
+    const task_id = req.body.task_id
+
+    Task.findByIdAndDelete({_id:task_id}).then((task)=>{
+        res.send(task)
+    })
+})
+
 
 //====PORT LISTEN====
 app.listen(port, ()=>{

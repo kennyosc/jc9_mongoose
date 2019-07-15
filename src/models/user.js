@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
         required:true,
         // ini akan memeriksa apakah ada email lainnya yang sama atau tidak
         unique: true,
+        //this is for indexing
         index:{
             unique:true
         },
@@ -69,7 +70,7 @@ const userSchema = new mongoose.Schema({
 
     tasks:[
         {//ini akan menyimpan objectID dari models task
-            type: mongoose.Schema.Types.objectID,
+            type: mongoose.Schema.Types.ObjectId,
             //synthax kedua akan mengambil data Task nya dari mana? yaitu dari model "Task"
             ref:'Task'
         }

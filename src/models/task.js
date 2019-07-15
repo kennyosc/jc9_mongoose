@@ -21,7 +21,7 @@ var taskSchema = new mongoose.Schema(
         //ini akan data the type DATE TIME, dalam bentuk createdAt dan EditiedAt secara otomatis
     timestamps: true
     }
-    
+
 )
 
 module.exports = mongoose.model("Task",taskSchema)
