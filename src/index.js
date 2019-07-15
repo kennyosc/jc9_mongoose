@@ -56,21 +56,31 @@ app.post('/users/input', async(req,res)=>{ //async ditaruh disitu karena functio
     // })
 })
 
-// POST ONE TASK
-app.post('/task/input', (req,res)=>{
-    const description_data = req.body.description
+// POST ONE TASK BASED ON USER_ID
+app.post('/task/:user_id', (req,res)=>{
+    const user_id = req.params.user_id
+    const task_description = req.body.description
 
-    const task = new Task({
-        description: description_data
-    })
+    //untuk mencari task milik si :user_id
+    User.findById('user_id').then((user)=>{
+        if(!user){
+            return res.send('User not found')
+        }
 
-    task.save().then(results =>{
-        res.send({
-            message: 'Task berhasil diinput',
-            description: description_data
+        // Membuat task {_id, desc, compl, owner}
+        const new_task = new Task({
+            description: task_description,
+            owner: user_id
         })
-    }).catch(err=>{
-        res.send(err)
+
+        // Masukkan id dari task yg sudah di buat ke array 'tasks' pada user
+        user.tasks = user.tasks.concat(new_task._id)
+        
+        user.save().then(()=>{
+            new_task.save().then(()=>{
+                res.send(new_task)
+            })
+        })
     })
 })
 
@@ -90,6 +100,7 @@ const upload = multer({
     }
 
 })
+
 
 //CREATE AVATAR
 //npm i --save sharp (untuk resize gambar yang diupload)
@@ -156,13 +167,19 @@ app.patch('/users/:id', (req,res)=>{
     const id_data = req.params.id
     const newName = req.body.name
 
-    User.findById(id_data).then(results=>{
-        //results = {_id,name,email,password,age} -> object yang dari find
-        results.name = newName
+    User.findById(id_data).then(user=>{
+        if(!user){
+            //ini harus pakai return supaya program tidak melanjutkan baca yang bagian bawah
+            return res.send('User not found')
+        }
+        //user = {_id,name,email,password,age} -> object yang dari find
+        user.name = newName
         
         //.save() adalah method dari mongoose untuk menyimpan data yang kita ubah ke mongodb
-        results.save()
-        res.send('Update telah berhasil')
+        user.save()
+        .then(()=>{
+            res.send('Update telah berhasil')
+        })
     })
 })
 
