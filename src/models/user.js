@@ -79,6 +79,39 @@ const userSchema = new mongoose.Schema({
     ]
 })
 
+//MODEL METHOD
+//statics berguna untuk memasukkan method baru ke dalam model userSchema
+userSchema.statics.loginWithEmail = async(da_email,da_password)=>{
+    try{
+        const f_user = await User.findOne({email:da_email})
+
+        if(!f_user){
+            //throw ini akan masuk ke try,catch ketika function ini dipanggil
+            // ini akan masuk ke dalam propery .message
+            // untuk mengakses nya adalah dengan cara error.message di dalam catch
+            throw new Error("User not found")
+        }
+    
+        //.compare menerima 2 parameter
+        // 1. password yang dimasukkan/ diinput
+        // 2. password yang ada di database
+        // dia akan memeriksa apakah password yang diinput = password yang di database, yang sudah di hash
+        const check_password = await bcrypt.compare(da_password, f_user.password)
+        if(!check_password){
+            throw new Error('Unable to login')
+        }
+    
+        //ini di return karena merupakan sebuah function dan tidak ada 'res'.
+        // makanya tidak di res.send
+        return f_user
+    }catch(error){
+        return({
+            status:'FAIL',
+            message: error
+        })
+    }
+}
+
 userSchema.pre('save', async function(next){
     //this akan mengacu pada object user di mana function ini dipanggil, yaitu user
     const user = this

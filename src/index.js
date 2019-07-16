@@ -129,6 +129,19 @@ app.post('/users/:id/avatar', upload.single('avatar'),(req,res)=>{ //multer == m
     })
 })
 
+//LOGIN USER
+app.post('/users/login', async(req,res)=>{
+    const data_email = req.body.email
+    const data_pass = req.body.password
+
+    try {
+        const hasil = await User.loginWithEmail(data_email,data_pass)
+        res.send(hasil)
+    } catch (error) {
+        res.send(error.message)
+    }
+})
+
 
 //======================READ======================
 //HOME
@@ -266,6 +279,10 @@ app.delete('/users/:id', async(req,res)=>{
     const id_data = req.params.id
 
     try{
+        //await literally makes JavaScript wait until the promise settles, and then go on with the result
+        // promise anggapan adalah janji. dimana nantinya akan ditepati ketika di call di .then atau dipanggil
+        //Promises in JavaScript represent processes which are already happening, which can be chained with callback functions.
+        //wait till Task.findByIdAndDelete resolves, then insert it into the var hasil. then res.send
         var hasil = await Task.findByIdAndDelete(id_data)
         res.send(hasil+ ' has been deleted')
     }catch(err){
