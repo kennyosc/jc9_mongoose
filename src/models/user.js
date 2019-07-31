@@ -100,6 +100,10 @@ userSchema.statics.loginWithEmail = async(da_email,da_password)=>{
         if(!check_password){
             throw new Error('Unable to login')
         }
+
+        // da_password: satuduatiga
+        // user.password: $2b$08$efjBzkL
+        // match: true or false
     
         //ini di return karena merupakan sebuah function dan tidak ada 'res'.
         // makanya tidak di res.send
@@ -112,17 +116,20 @@ userSchema.statics.loginWithEmail = async(da_email,da_password)=>{
     }
 }
 
+// Membuat function yang akan dijalankan sebelum proses user.save()
 userSchema.pre('save', async function(next){
     //this akan mengacu pada object user di mana function ini dipanggil, yaitu user
     const user = this
     //check first whether the document is modified or not, then run the bcrypt function
-    if(user.isModified){
+    if(user.isModified('password')){
         //brcrypt akan menerima 2 parameter, yaitu 'variable yang akan di hash', dan berapa bnyk hash yang diinginkan
         user.password = await bcrypt.hash(user.password, 8)
     }
 
     next()
 })
+
+
 
 const User = mongoose.model('User', userSchema)
 

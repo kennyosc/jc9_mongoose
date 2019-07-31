@@ -3,14 +3,20 @@ const express = require('express')
 const app = express()
 const mongoose = require('mongoose')
 const multer = require('multer')
+//  npm i --save cors
+// resource sharing between 2 network
+const cors = require('cors')
+const sharp = require('sharp')
 
 const User = require('./models/user.js')
 const Task = require('./models/task.js')
 
 const port = 2019
-const URL = 'mongodb://127.0.0.1:27017/jc9_mongoose'
+//ganti password dan database yang mau dituju
+const URL = 'mongodb+srv://kennyosc:K3nnyatlas@jc9mysqlexpress-gplrt.mongodb.net/jc9MySqlExpress?retryWrites=true&w=majority'
 
 app.use(express.json())
+app.use(cors())
 
 // ======================MONGOOSE======================
 mongoose.connect(URL, {
@@ -62,11 +68,12 @@ app.post('/task/:user_id', (req,res)=>{
     const task_description = req.body.description
 
     //untuk mencari task milik si :user_id
-    User.findById('user_id').then((user)=>{
+    User.findById(user_id).then((user)=>{
         if(!user){
             return res.send('User not found')
         }
 
+        console.log(user)
         // Membuat task {_id, desc, compl, owner}
         const new_task = new Task({
             description: task_description,
@@ -107,7 +114,7 @@ const upload = multer({
 // terdapat :id di tengahnya karena mau memberikan avatarnya khusus pada :id tersebut
 // ketika pakai postman untuk upload avatar, itu menggunakan form-data
 // ketika post di postman, nama key harus sama dengan upload.single('avatar')
-app.post('/users/:id/avatar', upload.single('avatar'),(req,res)=>{ //multer == middleware
+app.post('/users/:id/avatar', upload.single('ravatar'),(req,res)=>{ //multer == middleware
     const id_data = req.params.id
 
     //sharp = sebuah function
@@ -167,21 +174,43 @@ app.get('/users',(req,res)=>{
 app.get('/users/:id', (req,res)=>{
     const data_id = req.params.id
 
-    User.findById(data_id).then((err,userData)=>{
-        if(err){
-            console.log(err)
-        } else{
-            res.send(userData)
-        }
+    User.findById(data_id).then((userData)=>{
+        res.send(userData)
     })
+})
+
+//READ ALL TASK
+app.get('/tasks', async(req,res)=>{
+    var allTask = await Task.find({})
+
+    if(!allTask){
+        res.send('Task not available')
+    }
+
+    res.send(allTask)
 })
 
 //READ TASK BY USER_ID
 app.get('/tasks/:user_id', (req,res)=>{
 
     // Mencari user berdasarkan Id
-    User.findById(req.params.userid)
-        .populate({path: 'Task'}).exec() // Mencari data ke tasks berdasarkan task id untuk kemudian di kirim sebagai respon
+    User.findById(req.params.user_id)
+        //.populate adalah mempopulasikan Tasks yang ada di user dengan task yang terdapat di 'Task' Model
+        .populate(
+            {
+                //ini pathnya ke property yang terdapat di dalam model. bukan ke ref.
+                //ref itu ke model yang lainnya. tpi untuk mengaksesnya, itu harus ke property
+                path: 'tasks',
+                options:{
+                    // sorting data secara descending berdasarkan field completed
+                    // 1 = Ascending : false -> true
+                    // -1 = Descending : true -> false
+                    sort:{
+                        completed:1
+                    }
+                }
+            }
+            ).exec() // Mencari data ke tasks berdasarkan task id untuk kemudian di kirim sebagai respon
         .then(user => {
             // Jika user tidak ditemukan
             if(!user){
@@ -193,61 +222,83 @@ app.get('/tasks/:user_id', (req,res)=>{
         })
 })
 
+// READ AVATAR
+app.get('/users/:id/avatar', async (req, res) => {
+    // get user, kirim foto
+    const user = await User.findById(req.params.id)
+
+    if(!user || !user.avatar){
+        throw new Error('Foto / User tidak ada')
+    }
+
+    res.set('Content-Type', 'image/png')
+    res.send(user.avatar) // default: ContentType : application/json
+})
+
 //======================UPDATE======================
 // FINDBYIDANDUPDATE USER
-app.patch('/users/:id', (req,res)=>{
+app.patch('/users/:id',upload.single('ravatar'), (req,res)=>{
     const id_data = req.params.id
+
     const newName = req.body.name
+    const newEmail = req.body.email
+    const newAge = req.body.age
+    const newPass = req.body.password
+
+    
 
     User.findById(id_data).then(user=>{
         if(!user){
             //ini harus pakai return supaya program tidak melanjutkan baca yang bagian bawah
             return res.send('User not found')
         }
-        //user = {_id,name,email,password,age} -> object yang dari find
-        user.name = newName
-        
-        //.save() adalah method dari mongoose untuk menyimpan data yang kita ubah ke mongodb
-        user.save()
-        .then(()=>{
-            res.send('Update telah berhasil')
+
+        sharp(req.file.buffer).resize({width:250}).png().toBuffer().then(buffer=>{
+            
+            user.avatar = buffer
+            user.name = newName
+            user.email = newEmail
+            user.age = newAge
+            user.password = newPass
+
+        // //.save() adalah method dari mongoose untuk menyimpan data yang kita ubah ke mongodb
+            user.save().then(()=>{
+                res.send('Update Photo Profile Berhasil')
+            })
         })
     })
 })
 
 //patch task so that completed:true
 // patch dan get membutuhkan /:id karena express harus tau :id mana yang akan di get atau update
-app.patch('/users/:id', (req,res)=>{
-    const id_data = req.params.id
-
-    Task.findById(id_data).then(task=>{
-        task.completed = !task.completed
-
-        task.save().then(()=>{
-            res.send('Task completed')
-        })
-    })
-})
-
-app.patch('/tasks/:userid/:taskid', (req,res)=>{
+// UPDATE TASK BY USERID AND TASKID
+app.patch('/tasks/:userid/:taskid', (req, res) => {
     const data_userid = req.params.userid
     const data_taskid = req.params.taskid
+    // Menemukan user by id
+    User.findById(data_userid)
+        .then(user => {
+            if(!user) {
+                return res.send('User tidak ditemukan')
+            }
 
-    //find by user_id
-    User.findById(data_userid).then((user)=>{
-        if(!user){
-            return res.send('User not found')
-        }
+            console.log(user)
+            // Menemukan task by id
+            Task.findOne({_id: data_taskid})
+                .then(task => {
+                    if(!task) {
+                        return res.send('Task tidak ditemukan')
+                    }
 
-        //find the task you want to update
-        Task.findOne({_id:data_taskid}).then((task)=>{
-            task.completed = true
+                    task.completed = !task.completed
 
-            task.save().then(()=>{
-                res.send('Task Completed')
-            })
+                    task.save()
+                        .then(()=>{
+                            res.send('Selesai dikerjakan')
+                        })
+                })
         })
-    })
+
 })
 
 //======================DELETE======================
@@ -292,14 +343,18 @@ app.delete('/users/:id', async(req,res)=>{
 })
 
 
-//DELETE TASK BY ID
-app.delete('/tasks', (req,res)=>{
-    const task_id = req.body.task_id
+//DELETE TASK
+app.delete('/tasks/:task_id', (req,res)=>{
+    const task_id = req.params.task_id
 
+    
     Task.findByIdAndDelete({_id:task_id}).then((task)=>{
         res.send(task)
     })
 })
+
+//DELETE TASK BY ID
+
 
 
 //====PORT LISTEN====
