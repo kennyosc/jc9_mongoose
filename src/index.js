@@ -11,7 +11,7 @@ const sharp = require('sharp')
 const User = require('./models/user.js')
 const Task = require('./models/task.js')
 
-const port = 2019
+const port = process.env.PORT || 2019
 //ganti password dan database yang mau dituju
 const URL = 'mongodb+srv://kennyosc:K3nnyatlas@jc9mysqlexpress-gplrt.mongodb.net/jc9MySqlExpress?retryWrites=true&w=majority'
 
