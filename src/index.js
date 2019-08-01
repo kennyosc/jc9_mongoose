@@ -255,8 +255,6 @@ app.patch('/users/:id',upload.single('ravatar'), (req,res)=>{
         }
     })
 
-    console.log(hasil2)
-
     // const newName = req.body.name
     // const newEmail = req.body.email
     // const newAge = req.body.age
