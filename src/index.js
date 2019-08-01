@@ -161,9 +161,12 @@ app.get('/', (req,res)=>{
 // kalau tidak memakai mongoose, harus .toArray()
 app.get('/users',(req,res)=>{
     User.find().then((err,results)=>{
+        if(err){
+            console.log(err)
+        }else{
             //results adalah array of object
             res.send(results)
-        
+        }
     })
 })
 
