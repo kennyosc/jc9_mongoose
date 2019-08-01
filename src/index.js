@@ -238,14 +238,36 @@ app.get('/users/:id/avatar', async (req, res) => {
 //======================UPDATE======================
 // FINDBYIDANDUPDATE USER
 app.patch('/users/:id',upload.single('ravatar'), (req,res)=>{
+    //req.body adalah sebuah object.
+    // jika Object.keys, akan dijadikan menjadi array. tetapi tidak mengubah data req.body dari object menjadi array
+    let arrayBody = Object.keys(req.body)
+    console.log(req.body)
+    console.log(arrayBody)
+    //req.body  = {name,email, age,password}
+    // arrayBody [name,email,age,password]
+
+    //akan di cek setiap key nya,apakah kosong valuenya atau tidak ('',undefined,null)
+    // jika kosong, maka delete req.body.key
+    arrayBody.forEach(key =>{
+        if(!req.body[key]){
+            delete req.body[key]
+        }
+    })
+
+    console.log(hasil2)
+
+    // const newName = req.body.name
+    // const newEmail = req.body.email
+    // const newAge = req.body.age
+    // const newPass = req.body.password
+
+    //dalam hal ini, password yang tidak ada updatenya
+    //req.body  = {name,email, age}
+    // ini memasukkan ke dalam arrayBody menjadi array lagi supaya di dalam user.findById dapat di foreach mana saja dapat yang akan diupdate
+    //yaitu array yang ada di bawah
+    arrayBody = Object.keys(req.body)
+    // arrayBody [name,email,age]
     const id_data = req.params.id
-
-    const newName = req.body.name
-    const newEmail = req.body.email
-    const newAge = req.body.age
-    const newPass = req.body.password
-
-    
 
     User.findById(id_data).then(user=>{
         if(!user){
@@ -253,13 +275,18 @@ app.patch('/users/:id',upload.single('ravatar'), (req,res)=>{
             return res.send('User not found')
         }
 
+        //update user
+        arrayBody.forEach(key=>{
+            user[key] = req.body[key]
+        })
+
         sharp(req.file.buffer).resize({width:250}).png().toBuffer().then(buffer=>{
             
             user.avatar = buffer
-            user.name = newName
-            user.email = newEmail
-            user.age = newAge
-            user.password = newPass
+            // user.name = newName
+            // user.email = newEmail
+            // user.age = newAge
+            // user.password = newPass
 
         // //.save() adalah method dari mongoose untuk menyimpan data yang kita ubah ke mongodb
             user.save().then(()=>{
