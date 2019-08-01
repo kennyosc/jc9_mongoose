@@ -15,8 +15,6 @@ const port = process.env.PORT || 2019
 //ganti password dan database yang mau dituju
 const URL = 'mongodb+srv://kennyosc:K3nnyatlas@jc9mysqlexpress-gplrt.mongodb.net/jc9MySqlExpress?retryWrites=true&w=majority'
 
-app.use(express.json())
-app.use(cors())
 
 // ======================MONGOOSE======================
 mongoose.connect(URL, {
@@ -24,6 +22,9 @@ mongoose.connect(URL, {
     useNewUrlParser: true,
     useCreateIndex: true
 })
+
+app.use(express.json())
+app.use(cors())
 
 // ======================ROUTES=====================
 //======================CREATE======================
