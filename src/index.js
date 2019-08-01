@@ -162,7 +162,7 @@ app.get('/', (req,res)=>{
 app.get('/users',(req,res)=>{
     User.find().then((err,results)=>{
             //results adalah array of object
-            return res.send(results)
+            res.send(results)
         
     })
 })
