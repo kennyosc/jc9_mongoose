@@ -48,9 +48,9 @@ app.post('/users/input', async(req,res)=>{ //async ditaruh disitu karena functio
     //ini adalah proses async, dimana res.send(results) menunggu hasil results dari var results
     try {
         var results = await person.save()
-        res.send(results)
+        return res.send(results)
     } catch (err) {
-        console.log(err)
+        return res.send(err)
     }
 
     //ES6
