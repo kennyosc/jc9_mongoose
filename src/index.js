@@ -162,10 +162,10 @@ app.get('/', (req,res)=>{
 app.get('/users',(req,res)=>{
     User.find().then((err,results)=>{
         if(err){
-            console.log(err)
+            return console.log(err)
         }else{
             //results adalah array of object
-            res.send(results)
+            return res.send(results)
         }
     })
 })
